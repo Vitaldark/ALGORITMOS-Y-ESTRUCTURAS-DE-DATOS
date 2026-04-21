@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Práctica Bubble Sort - Pedidos</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-align: center;
+    background: #0f172a; 
+    color: #f1f5f9;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #f1f5f9;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    margin-bottom: 30px;
+  }
+
+  #controls {
+    background: rgba(30, 41, 59, 0.7);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #334155;
+    margin-bottom: 20px;
+    backdrop-filter: blur(5px);
+  }
+
+  label {
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+  select, button, input {
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    transition: all 0.3s ease;
+  }
+
+  button {
+    background: #2563eb;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  button:hover {
+    background: #3b82f6;
+    transform: translateY(-1px);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  }
+
+  #canvas {
+    display: flex;
+    justify-content: center; 
+    align-items: flex-end;
+    height: 420px;
+    margin: 30px auto;
+    border: 1px solid #334155;
+    background: #111827;
+    width: 95%;
+    overflow-x: auto;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+  }
+
+  .bar {
+    margin: 0 3px;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px 4px 2px 2px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5px;
+    transition: transform 0.2s, height 0.3s ease;
+  }
+
+  .bar.produccion {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    border-left: 2px solid #60a5fa; 
+  }
+
+  .bar.entrega {
+    background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
+    border-left: 2px solid #cbd5e1; 
+  }
+
+  .bar.prioridad {
+    background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+    border-left: 2px solid #f87171;
+  }
+
+  .bar.activo, .bar.comparando {
+    box-shadow: 0 0 20px #fbbf24;
+    border: 2px solid #fbbf24 !important;
+    transform: scale(1.1);
+    z-index: 5;
+  }
+
+  #listaPedidos { margin-top: 40px; }
+
+  table {
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 90%;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  th, td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  th {
+    background: #1e293b;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  th.activo {
+    background: #2563eb;
+    color: white;
+  }
+
+  tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  /* Leyenda */
+  #leyenda { margin: 20px auto; }
+  
+  .dot {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    margin-right: 8px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+  <h1>Visualización de Algoritmos de Ordenamiento - Pedidos</h1>
+  <div id="controls">
+    <label>Número de Pedidos: </label>
+    <input type="number" id="numPedidos" value="8" min="1" max="20">
+    <button onclick="generar()">Generar Pedidos Aleatorios</button>
+    <br><br>
+    <label>Ordenar por: </label>
+    <select id="criterio">
+      <option value="tiempo_produccion">Tiempo Producción</option>
+      <option value="tiempo_entrega">Tiempo Entrega</option>
+      <option value="prioridad">Prioridad</option>
+    </select>
+    <label>Orden: </label>
+    <select id="orden">
+      <option value="asc">Ascendente</option>
+      <option value="desc">Descendente</option>
+    </select>
+    <label>Algoritmo: </label>
+    <select id="algoritmo">
+      <option value="bubble">Bubble Sort</option>
+      <option value="insertion">Insertion Sort</option>
+      <option value="selection">Selection Sort</option>
+      <option value="shell">Shell Sort</option>
+    </select>
+    <br><br>
+    <label>Velocidad (ms): </label>
+    <input type="range" id="velocidad" min="100" max="2000" value="500" step="100">
+    <span id="velocidadValor">500</span> ms
+    <br><br>
+    <button onclick="ordenar()">Iniciar Ordenamiento</button>
+    <button onclick="reiniciar()">Reiniciar</button>
+  </div>
+  <div id="canvas"></div>
+  <div id="leyenda">
+    <h3>Leyenda - <span id="leyendaTexto">Selecciona un criterio</span></h3>
+    <div id="leyendaColor" style="display: flex; justify-content: center; gap: 20px;">
+    </div>
+  </div>
+  <div id="listaPedidos">
+    <h2>Lista de Pedidos</h2>
+    <table id="tablaPedidos">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tiempo Producción</th>
+          <th>Tiempo Entrega</th>
+          <th>Prioridad</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpoTabla"></tbody>
+    </table>
+  </div>
+
+  <script>
+    class Pedido {
+      constructor(id, produccion, entrega, prioridad) {
+        this.id = id;
+        this.tiempo_produccion = produccion;
+        this.tiempo_entrega = entrega;
+        this.prioridad = prioridad;
+      }
+    }
+
+    // Generar datos de ejemplo
+    let pedidos = [];
+    function generar() {
+      const num = parseInt(document.getElementById("numPedidos").value);
+      pedidos = [];
+      for (let i = 0; i < num; i++) {
+        pedidos.push(new Pedido(
+          i + 1,
+          Math.floor(Math.random() * 200) + 10,
+          Math.floor(Math.random() * 400) + 30,
+          Math.floor(Math.random() * 5) + 1
+        ));
+      }
+      actualizarVista();
+    }
+
+    // Actualizar vista
+    function actualizarVista() {
+      const criterio = document.getElementById("criterio").value;
+      dibujar(pedidos, criterio);
+      mostrarTabla();
+      actualizarLeyenda(criterio);
+    }
+
+    // Actualizar leyenda
+    function actualizarLeyenda(key) {
+      const texto = document.getElementById("leyendaTexto");
+      const colorDiv = document.getElementById("leyendaColor");
+      let color = "";
+      let label = "";
+      if (key === "tiempo_produccion") {
+        color = "linear-gradient(to top, #4CAF50, #66BB6A)";
+        label = "Tiempo Producción";
+      } else if (key === "tiempo_entrega") {
+        color = "linear-gradient(to top, #2196F3, #42A5F5)";
+        label = "Tiempo Entrega";
+      } else if (key === "prioridad") {
+        color = "linear-gradient(to top, #F44336, #EF5350)";
+        label = "Prioridad";
+      }
+      texto.textContent = label;
+      colorDiv.innerHTML = `<div><div style="width: 20px; height: 20px; background: ${color}; display: inline-block; margin-right: 5px;"></div>${label}</div>`;
+    }
+
+    // Dibujar pedidos en canvas
+    function dibujar(pedidos, key) {
+      const canvas = document.getElementById("canvas");
+      canvas.innerHTML = "";
+      let colorClass = "";
+      if (key === "tiempo_produccion") colorClass = "produccion";
+      else if (key === "tiempo_entrega") colorClass = "entrega";
+      else if (key === "prioridad") colorClass = "prioridad";
+      pedidos.forEach(p => {
+        const bar = document.createElement("div");
+        const valor = p[key];
+        bar.className = "bar " + colorClass;
+        bar.style.height = (key === "prioridad" ? valor * 50 : valor) + "px";
+        bar.style.width = Math.max(20, 400 / pedidos.length) + "px";
+        bar.textContent = valor;
+        canvas.appendChild(bar);
+      });
+    }
+
+    // Mostrar tabla
+    function mostrarTabla() {
+      const cuerpo = document.getElementById("cuerpoTabla");
+      const criterio = document.getElementById("criterio").value;
+      // Limpiar clases anteriores
+      document.querySelectorAll("th").forEach(th => th.classList.remove("activo"));
+      // Añadir clase al th correspondiente
+      const ths = document.querySelectorAll("th");
+      if (criterio === "tiempo_produccion") ths[1].classList.add("activo");
+      else if (criterio === "tiempo_entrega") ths[2].classList.add("activo");
+      else if (criterio === "prioridad") ths[3].classList.add("activo");
+
+      cuerpo.innerHTML = "";
+      pedidos.forEach(p => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.tiempo_produccion}</td>
+          <td>${p.tiempo_entrega}</td>
+          <td>${p.prioridad}</td>
+        `;
+        cuerpo.appendChild(fila);
+      });
+    }
+
+    // Bubble Sort con animación
+    async function bubbleSort(pedidos, key, asc=true) {
+      const delay = parseInt(document.getElementById("velocidad").value);
+      let n = pedidos.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n-i-1; j++) {
+          let cond = asc 
+            ? pedidos[j][key] > pedidos[j+1][key] 
+            : pedidos[j][key] < pedidos[j+1][key];
+          if (cond) {
+            [pedidos[j], pedidos[j+1]] = [pedidos[j+1], pedidos[j]];
+            actualizarVista();
+            await new Promise(r => setTimeout(r, delay));
+          }
+        }
+      }
+    }
+
+    // Selection Sort con animación
+    async function selectionSort(pedidos, key, asc=true) {
+      const delay = parseInt(document.getElementById("velocidad").value);
+      let n = pedidos.length;
+      for (let i = 0; i < n-1; i++) {
+        let minIdx = i;
+        for (let j = i+1; j < n; j++) {
+          if (asc ? pedidos[j][key] < pedidos[minIdx][key] : pedidos[j][key] > pedidos[minIdx][key]) {
+            minIdx = j;
+          }
+        }
+        if (minIdx !== i) {
+          [pedidos[i], pedidos[minIdx]] = [pedidos[minIdx], pedidos[i]];
+          actualizarVista();
+          await new Promise(r => setTimeout(r, delay));
+        }
+      }
+    }
+
+    // Shell Sort con animación
+    async function shellSort(pedidos, key, asc=true) {
+      const delay = parseInt(document.getElementById("velocidad").value);
+      let n = pedidos.length;
+      for (let gap = Math.floor(n/2); gap > 0; gap = Math.floor(gap/2)) {
+        for (let i = gap; i < n; i++) {
+          let temp = pedidos[i];
+          let j;
+          for (j = i; j >= gap && (asc ? pedidos[j - gap][key] > temp[key] : pedidos[j - gap][key] < temp[key]); j -= gap) {
+            pedidos[j] = pedidos[j - gap];
+            actualizarVista();
+            await new Promise(r => setTimeout(r, delay));
+          }
+          pedidos[j] = temp;
+        }
+      }
+    }
+
+    // Iniciar proceso
+    async function ordenar() {
+      const criterio = document.getElementById("criterio").value;
+      const orden = document.getElementById("orden").value;
+      const algoritmo = document.getElementById("algoritmo").value;
+      if (algoritmo === "bubble") {
+        await bubbleSort(pedidos, criterio, orden === "asc");
+      } else if (algoritmo === "insertion") {
+        await insertionSort(pedidos, criterio, orden === "asc");
+      } else if (algoritmo === "selection") {
+        await selectionSort(pedidos, criterio, orden === "asc");
+      } else if (algoritmo === "shell") {
+        await shellSort(pedidos, criterio, orden === "asc");
+      }
+    }
+
+    // Reiniciar
+    function reiniciar() {
+      generar();
+    }
+
+    document.getElementById("velocidad").addEventListener("input", function() {
+      document.getElementById("velocidadValor").textContent = this.value;
+    });
+
+    // Actualizar leyenda al cambiar criterio
+    document.getElementById("criterio").addEventListener("change", function() {
+      actualizarLeyenda(this.value);
+      actualizarVista(); 
+    });
+
+    generar();
+  </script>
+</body>
+</html>
