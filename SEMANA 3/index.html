@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SortLab — Visualizador de Algoritmos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #080c10;
+      --surface:  #0d1520;
+      --card:     #111d2e;
+      --border:   #1e3050;
+      --muted:    #2a4060;
+      --text:     #c8ddf0;
+      --dim:      #4a6a8a;
+      --accent:   #00d4ff;
+      --accent2:  #ff6b35;
+      --accent3:  #39ff88;
+      --warn:     #ffd700;
+      --danger:   #ff3860;
+      --glow:     0 0 20px rgba(0,212,255,0.3);
+      --glow2:    0 0 20px rgba(255,107,53,0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* === BACKGROUND GRID === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -40%;
+      left: -20%;
+      width: 60%;
+      height: 80%;
+      background: radial-gradient(ellipse, rgba(0,60,120,0.25) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* === HEADER === */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 28px 40px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8,12,16,0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), #0070ff);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: var(--glow);
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      opacity: 0.7;
+      letter-spacing: 1px;
+    }
+
+    /* === MAIN LAYOUT === */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 28px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+    }
+
+    /* === SIDEBAR === */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::before {
+      content: '';
+      width: 14px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* === FORM ELEMENTS === */
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      background: var(--surface);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.12);
+    }
+
+    select option { background: var(--card); }
+
+    /* Range slider */
+    .range-wrap { position: relative; margin-bottom: 14px; }
+    .range-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .range-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(0,212,255,0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--muted);
+      border-radius: 2px;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0,212,255,0.6);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* === BUTTONS === */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0070ff);
+      color: #000;
+      box-shadow: 0 4px 18px rgba(0,212,255,0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,212,255,0.5);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,212,255,0.05);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(255,56,96,0.4);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255,56,96,0.08);
+      border-color: var(--danger);
+    }
+
+    /* === STATS GRID === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 0;
+    }
+
+    .stat-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-val.orange { color: var(--accent2); }
+    .stat-val.green  { color: var(--accent3); }
+    .stat-val.yellow { color: var(--warn); }
+
+    .stat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--dim);
+    }
+
+    /* === ALGORITHM INFO === */
+    .algo-info {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .algo-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .algo-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+
+    .algo-meta span { color: var(--accent3); }
+
+    /* === STATUS BAR === */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--surface);
+      border-radius: 8px;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dim);
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+
+    .status-dot.running {
+      background: var(--accent3);
+      box-shadow: 0 0 8px rgba(57,255,136,0.6);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.done {
+      background: var(--warn);
+      box-shadow: 0 0 8px rgba(255,215,0,0.5);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    /* === MAIN CONTENT === */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    /* === CANVAS === */
+    .canvas-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .canvas-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .canvas-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .canvas-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    #canvas {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 340px;
+      padding: 20px 20px 0;
+      gap: 3px;
+      overflow-x: auto;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          rgba(30,48,80,0.3) 39px,
+          rgba(30,48,80,0.3) 40px
+        );
+    }
+
+    .bar {
+      flex-shrink: 0;
+      border-radius: 4px 4px 2px 2px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 6px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.8);
+      transition: height 0.15s cubic-bezier(0.25,0.46,0.45,0.94),
+                  box-shadow 0.15s,
+                  transform 0.15s;
+      position: relative;
+      cursor: default;
+    }
+
+    .bar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.12), transparent 40%);
+      pointer-events: none;
+    }
+
+    .bar.produccion {
+      background: linear-gradient(180deg, #00d4ff 0%, #0048a8 100%);
+    }
+
+    .bar.entrega {
+      background: linear-gradient(180deg, #ff6b35 0%, #8b2500 100%);
+    }
+
+    .bar.prioridad {
+      background: linear-gradient(180deg, #39ff88 0%, #006b35 100%);
+    }
+
+    .bar.comparing {
+      box-shadow: 0 0 0 2px var(--warn), 0 0 20px rgba(255,215,0,0.5);
+      transform: scaleX(1.05);
+      z-index: 5;
+    }
+
+    .bar.swapping {
+      box-shadow: 0 0 0 2px var(--danger), 0 0 20px rgba(255,56,96,0.6);
+      transform: scaleX(1.08) scaleY(1.02);
+      z-index: 6;
+    }
+
+    .bar.sorted {
+      filter: brightness(0.65) saturate(0.6);
+    }
+
+    /* === TABLE === */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .table-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background: rgba(0,212,255,0.1);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    thead th.active-col {
+      color: var(--accent);
+      background: rgba(0,212,255,0.06);
+    }
+
+    thead th.active-col::after {
+      content: ' ▲';
+      font-size: 8px;
+    }
+
+    tbody tr {
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: rgba(0,212,255,0.04); }
+
+    tbody td {
+      padding: 9px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(30,48,80,0.5);
+    }
+
+    tbody td:first-child {
+      color: var(--dim);
+      font-size: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .pill.p1 { background: rgba(57,255,136,0.15); color: var(--accent3); }
+    .pill.p2 { background: rgba(0,212,255,0.12); color: var(--accent); }
+    .pill.p3 { background: rgba(255,215,0,0.12); color: var(--warn); }
+    .pill.p4 { background: rgba(255,107,53,0.12); color: var(--accent2); }
+    .pill.p5 { background: rgba(255,56,96,0.12); color: var(--danger); }
+
+    /* === PROGRESS BAR === */
+    .progress-wrap {
+      height: 3px;
+      background: var(--muted);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+
+    /* === LEGEND === */
+    .legend-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--dim);
+      padding: 4px 8px;
+      background: var(--surface);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* === COMPLEXITY BADGE === */
+    .complexity {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+
+    .c-good  { color: var(--accent3); border-color: rgba(57,255,136,0.3); background: rgba(57,255,136,0.07); }
+    .c-mid   { color: var(--warn);    border-color: rgba(255,215,0,0.3);   background: rgba(255,215,0,0.07); }
+    .c-bad   { color: var(--danger);  border-color: rgba(255,56,96,0.3);   background: rgba(255,56,96,0.07); }
+
+    /* === TOAST === */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--card);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      box-shadow: var(--glow);
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* === SCROLLBAR === */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      header { padding: 18px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    <div>
+      <div class="logo-text">Sort<span>Lab</span></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="headerStatus" class="header-badge">LISTO</span>
+  </div>
+</header>
+
+<main>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- CONFIG -->
+    <div class="card">
+      <div class="card-title">Configuración</div>
+
+      <label>Pedidos a generar</label>
+      <input type="number" id="numPedidos" value="12" min="3" max="30">
+
+      <label>Ordenar por</label>
+      <select id="criterio">
+        <option value="tiempo_produccion">Tiempo Producción</option>
+        <option value="tiempo_entrega">Tiempo Entrega</option>
+        <option value="prioridad">Prioridad</option>
+      </select>
+
+      <label>Dirección</label>
+      <select id="orden">
+        <option value="asc">Ascendente ↑</option>
+        <option value="desc">Descendente ↓</option>
+      </select>
+
+      <label>Algoritmo</label>
+      <select id="algoritmo" onchange="updateAlgoInfo()">
+        <option value="bubble">Bubble Sort</option>
+        <option value="insertion">Insertion Sort</option>
+        <option value="selection">Selection Sort</option>
+        <option value="shell">Shell Sort</option>
+        <option value="merge">Merge Sort</option>
+        <option value="quick">Quick Sort</option>
+      </select>
+
+      <div class="range-wrap">
+        <div class="range-label">
+          <label style="margin-bottom:0">Velocidad</label>
+          <span class="range-val" id="velocidadValor">300 ms</span>
+        </div>
+        <input type="range" id="velocidad" min="30" max="1500" value="300" step="30"
+          oninput="document.getElementById('velocidadValor').textContent = this.value + ' ms'">
+      </div>
+
+      <button class="btn btn-primary" id="btnOrdenar" onclick="ordenar()">
+        ▶ Iniciar Ordenamiento
+      </button>
+      <button class="btn btn-secondary" onclick="generar()">
+        ⟳ Nuevos Pedidos
+      </button>
+      <button class="btn btn-danger" onclick="reiniciar()">
+        ✕ Reiniciar
+      </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="card">
+      <div class="card-title">Estadísticas</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-val" id="statComparaciones">0</div>
+          <div class="stat-label">Comparaciones</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val orange" id="statIntercambios">0</div>
+          <div class="stat-label">Intercambios</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val green" id="statTiempo">0</div>
+          <div class="stat-label">Tiempo (ms)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val yellow" id="statPasos">0</div>
+          <div class="stat-label">Pasos tot.</div>
+        </div>
+      </div>
+      <div class="progress-wrap" style="margin-top:10px;">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="status-bar" style="margin-top:8px;">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Esperando...</span>
+      </div>
+    </div>
+
+    <!-- ALGO INFO -->
+    <div class="card">
+      <div class="card-title">Info del Algoritmo</div>
+      <div class="algo-info" id="algoInfo">
+        <div class="algo-name">Bubble Sort</div>
+        <div class="algo-meta">
+          Mejor:   <span>O(n)</span><br>
+          Promedio: <span>O(n²)</span><br>
+          Peor:    <span>O(n²)</span><br>
+          Espacio: <span>O(1)</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" id="algoBadges">
+        <span class="complexity c-bad">O(n²) promedio</span>
+        <span class="complexity c-good">In-place</span>
+        <span class="complexity c-good">Estable</span>
+      </div>
+    </div>
+
+    <!-- LEYENDA -->
+    <div class="card">
+      <div class="card-title">Leyenda Visual</div>
+      <div class="legend-row">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--warn)"></div> Comparando
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--danger)"></div> Intercambiando
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--muted)"></div> Ordenado
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- CANVAS -->
+    <div class="canvas-wrap">
+      <div class="canvas-header">
+        <span class="canvas-title">Vista de Barras</span>
+        <span class="canvas-meta" id="canvasMeta">12 pedidos · Tiempo Producción</span>
+      </div>
+      <div id="canvas"></div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Lista de Pedidos</span>
+        <span class="table-count" id="tableCount">0 pedidos</span>
+      </div>
+      <div class="table-scroll">
+        <table id="tablaPedidos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th id="th-tp">Prod. (min)</th>
+              <th id="th-te">Entrega (min)</th>
+              <th id="th-pr">Prioridad</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpoTabla"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ────────────────────────────────────────────────────────
+// DATA
+// ────────────────────────────────────────────────────────
+class Pedido {
+  constructor(id, produccion, entrega, prioridad) {
+    this.id = id;
+    this.tiempo_produccion = produccion;
+    this.tiempo_entrega = entrega;
+    this.prioridad = prioridad;
+    this.estado = ['Pendiente','En Proceso','Retrasado','Urgente','Listo'][Math.floor(Math.random()*5)];
+  }
+}
+
+let pedidos = [];
+let running = false;
+let comparaciones = 0, intercambios = 0, pasos = 0;
+let startTime = 0;
+let totalSteps = 0; // for progress estimation
+
+const ALGO_INFO = {
+  bubble:    { name:'Bubble Sort',    best:'O(n)',    avg:'O(n²)',       worst:'O(n²)',      space:'O(1)',  badges:['O(n²) promedio','In-place','Estable'] },
+  insertion: { name:'Insertion Sort', best:'O(n)',    avg:'O(n²)',       worst:'O(n²)',      space:'O(1)',  badges:['O(n²) promedio','In-place','Estable'] },
+  selection: { name:'Selection Sort', best:'O(n²)',   avg:'O(n²)',       worst:'O(n²)',      space:'O(1)',  badges:['O(n²) siempre','In-place','No estable'] },
+  shell:     { name:'Shell Sort',     best:'O(n log n)', avg:'O(n log² n)', worst:'O(n²)', space:'O(1)',  badges:['Sub-cuadrático','In-place','No estable'] },
+  merge:     { name:'Merge Sort',     best:'O(n log n)', avg:'O(n log n)', worst:'O(n log n)',space:'O(n)', badges:['O(n log n) siempre','Estable','Divide y vencerás'] },
+  quick:     { name:'Quick Sort',     best:'O(n log n)', avg:'O(n log n)', worst:'O(n²)',  space:'O(log n)', badges:['O(n log n) promedio','In-place','Divide y vencerás'] },
+};
+
+// ────────────────────────────────────────────────────────
+// GENERATION
+// ────────────────────────────────────────────────────────
+function generar() {
+  if (running) return;
+  const num = Math.max(3, Math.min(30, parseInt(document.getElementById('numPedidos').value)));
+  pedidos = [];
+  for (let i = 0; i < num; i++) {
+    pedidos.push(new Pedido(
+      i + 1,
+      Math.floor(Math.random() * 220) + 10,
+      Math.floor(Math.random() * 440) + 30,
+      Math.floor(Math.random() * 5) + 1
+    ));
+  }
+  resetStats();
+  actualizarVista();
+  toast('✓ ' + num + ' pedidos generados');
+}
+
+// ────────────────────────────────────────────────────────
+// VIEW
+// ────────────────────────────────────────────────────────
+function getCriterio() { return document.getElementById('criterio').value; }
+
+function actualizarVista(comparingIdx = [], swappingIdx = [], sortedIdx = []) {
+  const criterio = getCriterio();
+  dibujar(criterio, comparingIdx, swappingIdx, sortedIdx);
+  mostrarTabla(criterio);
+  document.getElementById('canvasMeta').textContent =
+    pedidos.length + ' pedidos · ' + labelCriterio(criterio);
+  document.getElementById('tableCount').textContent = pedidos.length + ' pedidos';
+}
+
+function labelCriterio(k) {
+  return { tiempo_produccion:'Tiempo Producción', tiempo_entrega:'Tiempo Entrega', prioridad:'Prioridad' }[k];
+}
+
+function colorClass(k) {
+  return { tiempo_produccion:'produccion', tiempo_entrega:'entrega', prioridad:'prioridad' }[k];
+}
+
+function maxVal(key) {
+  return Math.max(...pedidos.map(p => p[key]));
+}
+
+function dibujar(key, comparingIdx, swappingIdx, sortedIdx) {
+  const canvas = document.getElementById('canvas');
+  canvas.innerHTML = '';
+  const mx = maxVal(key);
+  const h = 300;
+  const cc = colorClass(key);
+  const w = Math.max(18, Math.floor((canvas.offsetWidth - 40) / pedidos.length) - 3);
+
+  pedidos.forEach((p, i) => {
+    const valor = p[key];
+    const height = Math.max(12, Math.round((valor / mx) * h));
+    const bar = document.createElement('div');
+    bar.className = 'bar ' + cc;
+    if (swappingIdx.includes(i)) bar.classList.add('swapping');
+    else if (comparingIdx.includes(i)) bar.classList.add('comparing');
+    else if (sortedIdx.includes(i)) bar.classList.add('sorted');
+    bar.style.height = height + 'px';
+    bar.style.width = w + 'px';
+    bar.style.minWidth = w + 'px';
+    bar.textContent = valor;
+    bar.title = `Pedido #${p.id} · ${labelCriterio(key)}: ${valor}`;
+    canvas.appendChild(bar);
+  });
+}
+
+function mostrarTabla(criterio) {
+  const cuerpo = document.getElementById('cuerpoTabla');
+  ['th-tp','th-te','th-pr'].forEach(id => document.getElementById(id).classList.remove('active-col'));
+  if (criterio === 'tiempo_produccion') document.getElementById('th-tp').classList.add('active-col');
+  else if (criterio === 'tiempo_entrega') document.getElementById('th-te').classList.add('active-col');
+  else document.getElementById('th-pr').classList.add('active-col');
+
+  cuerpo.innerHTML = '';
+  pedidos.forEach(p => {
+    const estado = p.estado;
+    const estMap = { Pendiente:2, 'En Proceso':3, Retrasado:4, Urgente:5, Listo:1 };
+    const cls = 'p' + (estMap[estado] || 1);
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+      <td>#${String(p.id).padStart(3,'0')}</td>
+      <td>${p.tiempo_produccion}</td>
+      <td>${p.tiempo_entrega}</td>
+      <td>${p.prioridad}</td>
+      <td><span class="pill ${cls}">${estado}</span></td>
+    `;
+    cuerpo.appendChild(fila);
+  });
+}
+
+// ────────────────────────────────────────────────────────
+// STATS
+// ────────────────────────────────────────────────────────
+function resetStats() {
+  comparaciones = 0; intercambios = 0; pasos = 0; startTime = 0;
+  document.getElementById('statComparaciones').textContent = '0';
+  document.getElementById('statIntercambios').textContent  = '0';
+  document.getElementById('statTiempo').textContent        = '0';
+  document.getElementById('statPasos').textContent         = '0';
+  document.getElementById('progressBar').style.width = '0%';
+  setStatus('idle');
+}
+
+function updateStats() {
+  document.getElementById('statComparaciones').textContent = comparaciones;
+  document.getElementById('statIntercambios').textContent  = intercambios;
+  document.getElementById('statPasos').textContent         = pasos;
+  if (startTime) {
+    document.getElementById('statTiempo').textContent = Math.round(performance.now() - startTime);
+  }
+  // rough progress
+  if (totalSteps > 0) {
+    const pct = Math.min(100, Math.round((pasos / totalSteps) * 100));
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+}
+
+function setStatus(state, msg) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  const hbadge = document.getElementById('headerStatus');
+  dot.className = 'status-dot';
+  if (state === 'running') { dot.classList.add('running'); text.textContent = msg || 'Ejecutando...'; hbadge.textContent = 'CORRIENDO'; }
+  else if (state === 'done') { dot.classList.add('done'); text.textContent = msg || 'Completado ✓'; hbadge.textContent = 'LISTO'; }
+  else { text.textContent = msg || 'Esperando...'; hbadge.textContent = 'LISTO'; }
+}
+
+// ────────────────────────────────────────────────────────
+// DELAY HELPER
+// ────────────────────────────────────────────────────────
+function delay(comparingIdx = [], swappingIdx = [], sortedIdx = []) {
+  pasos++;
+  updateStats();
+  actualizarVista(comparingIdx, swappingIdx, sortedIdx);
+  const ms = parseInt(document.getElementById('velocidad').value);
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// ────────────────────────────────────────────────────────
+// ALGORITHMS
+// ────────────────────────────────────────────────────────
+async function bubbleSort(key, asc) {
+  const n = pedidos.length;
+  const sorted = [];
+  for (let i = 0; i < n; i++) {
+    let swapped = false;
+    for (let j = 0; j < n - i - 1; j++) {
+      comparaciones++;
+      const cond = asc ? pedidos[j][key] > pedidos[j+1][key] : pedidos[j][key] < pedidos[j+1][key];
+      await delay([j, j+1], cond ? [j, j+1] : []);
+      if (cond) {
+        [pedidos[j], pedidos[j+1]] = [pedidos[j+1], pedidos[j]];
+        intercambios++; swapped = true;
+      }
+    }
+    sorted.push(n - 1 - i);
+    if (!swapped) break;
+  }
+}
+
+async function insertionSort(key, asc) {
+  const n = pedidos.length;
+  for (let i = 1; i < n; i++) {
+    let j = i;
+    while (j > 0) {
+      comparaciones++;
+      const cond = asc ? pedidos[j-1][key] > pedidos[j][key] : pedidos[j-1][key] < pedidos[j][key];
+      await delay([j-1, j], cond ? [j-1, j] : []);
+      if (cond) {
+        [pedidos[j], pedidos[j-1]] = [pedidos[j-1], pedidos[j]];
+        intercambios++; j--;
+      } else break;
+    }
+  }
+}
+
+async function selectionSort(key, asc) {
+  const n = pedidos.length;
+  for (let i = 0; i < n - 1; i++) {
+    let minIdx = i;
+    for (let j = i + 1; j < n; j++) {
+      comparaciones++;
+      const cond = asc ? pedidos[j][key] < pedidos[minIdx][key] : pedidos[j][key] > pedidos[minIdx][key];
+      await delay([minIdx, j], cond ? [j] : []);
+      if (cond) minIdx = j;
+    }
+    if (minIdx !== i) {
+      [pedidos[i], pedidos[minIdx]] = [pedidos[minIdx], pedidos[i]];
+      intercambios++;
+      await delay([i, minIdx], [i, minIdx]);
+    }
+  }
+}
+
+async function shellSort(key, asc) {
+  const n = pedidos.length;
+  for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+    for (let i = gap; i < n; i++) {
+      const temp = pedidos[i];
+      let j = i;
+      while (j >= gap) {
+        comparaciones++;
+        const cond = asc ? pedidos[j - gap][key] > temp[key] : pedidos[j - gap][key] < temp[key];
+        await delay([j, j - gap], cond ? [j, j - gap] : []);
+        if (cond) {
+          pedidos[j] = pedidos[j - gap];
+          intercambios++; j -= gap;
+        } else break;
+      }
+      pedidos[j] = temp;
+    }
+  }
+}
+
+async function mergeSort(key, asc) {
+  async function merge(lo, mid, hi) {
+    const left  = pedidos.slice(lo, mid + 1);
+    const right = pedidos.slice(mid + 1, hi + 1);
+    let i = 0, j = 0, k = lo;
+    while (i < left.length && j < right.length) {
+      comparaciones++;
+      const cond = asc ? left[i][key] <= right[j][key] : left[i][key] >= right[j][key];
+      await delay([lo + i, mid + 1 + j], [k]);
+      pedidos[k++] = cond ? left[i++] : right[j++];
+      intercambios++;
+    }
+    while (i < left.length) { pedidos[k++] = left[i++]; }
+    while (j < right.length) { pedidos[k++] = right[j++]; }
+    await delay([], [], []);
+  }
+
+  async function sort(lo, hi) {
+    if (lo >= hi) return;
+    const mid = Math.floor((lo + hi) / 2);
+    await sort(lo, mid);
+    await sort(mid + 1, hi);
+    await merge(lo, mid, hi);
+  }
+  await sort(0, pedidos.length - 1);
+}
+
+async function quickSort(key, asc) {
+  async function partition(lo, hi) {
+    const pivotVal = pedidos[hi][key];
+    let i = lo - 1;
+    for (let j = lo; j < hi; j++) {
+      comparaciones++;
+      const cond = asc ? pedidos[j][key] <= pivotVal : pedidos[j][key] >= pivotVal;
+      await delay([j, hi], cond ? [j, hi] : []);
+      if (cond) {
+        i++;
+        [pedidos[i], pedidos[j]] = [pedidos[j], pedidos[i]];
+        intercambios++;
+      }
+    }
+    [pedidos[i+1], pedidos[hi]] = [pedidos[hi], pedidos[i+1]];
+    intercambios++;
+    return i + 1;
+  }
+  async function sort(lo, hi) {
+    if (lo >= hi) return;
+    const p = await partition(lo, hi);
+    await sort(lo, p - 1);
+    await sort(p + 1, hi);
+  }
+  await sort(0, pedidos.length - 1);
+}
+
+// ────────────────────────────────────────────────────────
+// MAIN SORT
+// ────────────────────────────────────────────────────────
+async function ordenar() {
+  if (running) return;
+  running = true;
+  resetStats();
+  document.getElementById('btnOrdenar').disabled = true;
+
+  const criterio  = getCriterio();
+  const asc       = document.getElementById('orden').value === 'asc';
+  const algoritmo = document.getElementById('algoritmo').value;
+  const n         = pedidos.length;
+
+  totalSteps = n * n; // rough upper bound
+  startTime  = performance.now();
+  setStatus('running', 'Ejecutando ' + ALGO_INFO[algoritmo].name + '...');
+
+  try {
+    if (algoritmo === 'bubble')    await bubbleSort(criterio, asc);
+    else if (algoritmo === 'insertion') await insertionSort(criterio, asc);
+    else if (algoritmo === 'selection') await selectionSort(criterio, asc);
+    else if (algoritmo === 'shell')    await shellSort(criterio, asc);
+    else if (algoritmo === 'merge')    await mergeSort(criterio, asc);
+    else if (algoritmo === 'quick')    await quickSort(criterio, asc);
+  } catch (e) {}
+
+  const elapsed = Math.round(performance.now() - startTime);
+  document.getElementById('statTiempo').textContent = elapsed;
+  document.getElementById('progressBar').style.width = '100%';
+  setStatus('done', `Completado en ${elapsed}ms ✓`);
+  actualizarVista();
+  toast(`✓ Ordenamiento completado · ${comparaciones} comp · ${intercambios} intercambios · ${elapsed}ms`);
+  running = false;
+  document.getElementById('btnOrdenar').disabled = false;
+}
+
+function reiniciar() {
+  if (running) return;
+  generar();
+}
+
+// ────────────────────────────────────────────────────────
+// ALGO INFO UPDATE
+// ────────────────────────────────────────────────────────
+function updateAlgoInfo() {
+  const a = ALGO_INFO[document.getElementById('algoritmo').value];
+  document.getElementById('algoInfo').innerHTML = `
+    <div class="algo-name">${a.name}</div>
+    <div class="algo-meta">
+      Mejor:    <span>${a.best}</span><br>
+      Promedio: <span>${a.avg}</span><br>
+      Peor:     <span>${a.worst}</span><br>
+      Espacio:  <span>${a.space}</span>
+    </div>
+  `;
+  const badges = document.getElementById('algoBadges');
+  badges.innerHTML = a.badges.map(b => {
+    let cls = b.includes('n²') ? 'c-bad' : b.includes('log') || b.includes('n)') ? 'c-mid' : 'c-good';
+    if (b === 'Estable' || b === 'In-place') cls = 'c-good';
+    if (b === 'No estable') cls = 'c-bad';
+    return `<span class="complexity ${cls}">${b}</span>`;
+  }).join('');
+}
+
+// ────────────────────────────────────────────────────────
+// TOAST
+// ────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ────────────────────────────────────────────────────────
+// LISTENERS
+// ────────────────────────────────────────────────────────
+document.getElementById('criterio').addEventListener('change', () => actualizarVista());
+
+// ────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────
+generar();
+updateAlgoInfo();
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Búsquedas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            color: #afb6c8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #00b4ff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 180, 255, 0.5);
+            font-size: 2.5em;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+        .top-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .right-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        canvas {
+            background: linear-gradient(45deg, #14141c 25%, transparent 25%), 
+                        linear-gradient(-45deg, #14141c 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #14141c 75%), 
+                        linear-gradient(-45deg, transparent 75%, #14141c 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border: 2px solid #00b4ff;
+            border-radius: 10px;
+            display: block;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 180, 255, 0.3);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            font-size: 14px;
+            color: #00b4ff;
+        }
+        input, select {
+            background-color: #1c1c24;
+            color: #afb6c8;
+            border: 1px solid #3c3c4b;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(45deg, #282832, #3c3c4b);
+            color: #afb6c8;
+            border: 1px solid #3c3c4b;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background: linear-gradient(45deg, #3c3c4b, #4c4c5b);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        button.active {
+            background: linear-gradient(45deg, #00b4ff, #0099cc);
+            color: #0a0a0f;
+            box-shadow: 0 0 15px rgba(0, 180, 255, 0.5);
+        }
+        .code-display {
+            background-color: #1c1c24;
+            border: 1px solid #3c3c4b;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            white-space: pre;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .stats {
+            background: linear-gradient(45deg, #1c1c24, #2c2c34);
+            border: 1px solid #3c3c4b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .stats p {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .instructions {
+            background-color: #1c1c24;
+            border: 1px solid #3c3c4b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .instructions h2 {
+            color: #00b4ff;
+            margin-top: 0;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .top-section {
+                flex-direction: column;
+            }
+            canvas {
+                width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Visualizador de Búsquedas</h1>
+    <div class="instructions">
+        <h2>Instrucciones</h2>
+        <p>Selecciona un algoritmo de búsqueda, genera datos aleatorios o ingresa los tuyos, y observa cómo funciona la búsqueda paso a paso o automáticamente.</p>
+        <ul>
+            <li><strong>Búsqueda Lineal:</strong> Revisa cada elemento uno por uno.</li>
+            <li><strong>Búsqueda Binaria:</strong> Divide el arreglo en mitades para encontrar el objetivo.</li>
+            <li><strong>Búsqueda Exponencial:</strong> Encuentra el rango y luego usa binaria.</li>
+            <li><strong>Búsqueda por Interpolación:</strong> Estima la posición basada en valores.</li>
+        </ul>
+    </div>
+    <div class="container">
+        <div class="top-section">
+            <div class="left-panel">
+                <div class="input-group">
+                    <label for="tamLista">Tamaño del arreglo (5-75):</label>
+                    <input type="number" id="tamLista" min="5" max="75" value="25">
+                </div>
+                <div class="input-group">
+                    <label for="valorObjetivo">Valor objetivo:</label>
+                    <input type="number" id="valorObjetivo" min="10" max="399" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="velocidad">Velocidad de animación (ms):</label>
+                    <input type="range" id="velocidad" min="50" max="1000" value="350" step="50">
+                    <span id="velocidadValor">350ms</span>
+                </div>
+                <canvas id="canvas" width="600" height="400"></canvas>
+                <div class="controls">
+                    <button id="btnLineal">Búsqueda Lineal</button>
+                    <button id="btnBinaria" class="active">Búsqueda Binaria</button>
+                    <button id="btnExponencial">Búsqueda Exponencial</button>
+                    <button id="btnInterpolacion">Búsqueda por Interpolación</button>
+                    <button id="btnGenerar">Generar Datos</button>
+                    <button id="btnIniciar">Iniciar Búsqueda</button>
+                    <button id="btnPaso">Paso a Paso</button>
+                    <button id="btnReiniciar">Reiniciar</button>
+                </div>
+                <div class="stats">
+                    <p id="stats">Comparaciones: 0 | Tamaño: 25 | Objetivo: 0</p>
+                </div>
+            </div>
+            <div class="right-panel">
+                <div class="code-display" id="codeDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const statsEl = document.getElementById('stats');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const tamListaInput = document.getElementById('tamLista');
+        const valorObjetivoInput = document.getElementById('valorObjetivo');
+        const velocidadInput = document.getElementById('velocidad');
+        const velocidadValor = document.getElementById('velocidadValor');
+
+        // Colores
+        const COLOR_FONDO = '#0a0a0f';
+        const COLOR_PANEL = '#14141c';
+        const COLOR_ACENTO = '#00b4ff';
+        const COLOR_OBJETIVO = '#ff5555';
+        const COLOR_EXITO = '#00ff78';
+        const COLOR_RESALTADO = '#2d2d46';
+        const COLOR_TEXTO = '#afb6c8';
+        const COLOR_BARRA = '#3c3c50';
+        const COLOR_DESCARTADO = '#1e1e23';
+        const COLOR_BOTON = '#282832';
+        const COLOR_BOTON_HOVER = '#3c3c4b';
+
+        // Fragmentos de código
+        const FRAG_COD = {
+            "Lineal": `int buscar(vector<int>& a, int x) {
+  for(int i=0; i<a.size(); ++i) {
+    if(a[i] == x) return i;
+  }
+  return -1;
+}`,
+            "Binaria": `int buscar(vector<int>& a, int x) {
+  int l=0, r=a.size()-1;
+  while(l <= r) {
+    int m = l+(r-l)/2;
+    if(a[m] == x) return m;
+    else if(a[m]<x) l=m+1;
+    else r=m-1;
+  }
+  return -1;
+}`,
+            "Exponencial": `int buscar(vector<int>& a, int x) {
+  if(a[0] == x) return 0;
+  int i = 1;
+  while(i < a.size() && a[i] <= x)
+    i = i * 2;
+  return busquedaBinaria(a, x, i/2,
+                      min(i, n-1));
+}`,
+            "Interpolacion": `int buscar(vector<int>& a, int x) {
+  int l=0, r=a.size()-1;
+  while(l<=r && x>=a[l] && x<=a[r]) {
+    int p = l + (double)(r-l) *
+            (x-a[l]) / (a[r]-a[l]);
+    if(a[p] == x) return p;
+    ...
+  }
+  return -1;
+}`
+        };
+
+        let datos = [];
+        let valorObjetivo = 0;
+        let comparaciones = 0;
+        let algoritmo = "Binaria";
+        let lineaActiva = -1;
+        let corriendo = false;
+        let encontrado = false;
+        let tamLista = 25;
+        let indiceActual = -1;
+        let izq = 0;
+        let der = 0;
+        let expI = 1;
+        let faseBinaria = false;
+        let descartados = new Set();
+        let animacionId = null;
+
+        // Botones
+        document.getElementById('btnLineal').addEventListener('click', () => setAlgoritmo('Lineal'));
+        document.getElementById('btnBinaria').addEventListener('click', () => setAlgoritmo('Binaria'));
+        document.getElementById('btnExponencial').addEventListener('click', () => setAlgoritmo('Exponencial'));
+        document.getElementById('btnInterpolacion').addEventListener('click', () => setAlgoritmo('Interpolacion'));
+        document.getElementById('btnGenerar').addEventListener('click', generarDatos);
+        document.getElementById('btnIniciar').addEventListener('click', iniciarBusqueda);
+        document.getElementById('btnPaso').addEventListener('click', pasoBusqueda);
+        document.getElementById('btnReiniciar').addEventListener('click', reiniciarBusqueda);
+
+        // Inputs
+        tamListaInput.addEventListener('change', () => {
+            tamLista = parseInt(tamListaInput.value);
+            generarDatos();
+        });
+        valorObjetivoInput.addEventListener('change', () => {
+            valorObjetivo = parseInt(valorObjetivoInput.value);
+            actualizarStats();
+            dibujar();
+        });
+        velocidadInput.addEventListener('input', () => {
+            velocidadValor.textContent = velocidadInput.value + 'ms';
+        });
+
+        function setAlgoritmo(alg) {
+            algoritmo = alg;
+            document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn' + alg).classList.add('active');
+            codeDisplay.textContent = FRAG_COD[alg];
+            reiniciarBusqueda();
+        }
+
+        function generarDatos() {
+            tamLista = parseInt(tamListaInput.value);
+            tamLista = Math.max(5, Math.min(75, tamLista));
+            const uniqueNums = new Set();
+            while (uniqueNums.size < tamLista) {
+                uniqueNums.add(Math.floor(Math.random() * 390) + 10);
+            }
+            datos = Array.from(uniqueNums).sort((a, b) => a - b);
+            if (valorObjetivoInput.value) {
+                valorObjetivo = parseInt(valorObjetivoInput.value);
+            } else {
+                valorObjetivo = datos[Math.floor(Math.random() * datos.length)];
+                valorObjetivoInput.value = valorObjetivo;
+            }
+            reiniciarBusqueda();
+            dibujar();
+        }
+
+        function reiniciarBusqueda() {
+            indiceActual = -1;
+            izq = 0;
+            der = datos.length - 1;
+            expI = 1;
+            faseBinaria = false;
+            comparaciones = 0;
+            encontrado = false;
+            corriendo = false;
+            lineaActiva = -1;
+            descartados.clear();
+            if (animacionId) {
+                clearInterval(animacionId);
+                animacionId = null;
+            }
+            actualizarStats();
+            dibujar();
+        }
+
+        function iniciarBusqueda() {
+            if (corriendo) {
+                corriendo = false;
+                if (animacionId) {
+                    clearInterval(animacionId);
+                    animacionId = null;
+                }
+            } else {
+                corriendo = true;
+                const velocidad = parseInt(velocidadInput.value);
+                animacionId = setInterval(() => {
+                    if (!pasoBusqueda()) {
+                        corriendo = false;
+                        clearInterval(animacionId);
+                        animacionId = null;
+                    }
+                    dibujar();
+                }, velocidad);
+            }
+        }
+
+        function pasoBusqueda() {
+            comparaciones++;
+            actualizarStats();
+
+            if (algoritmo === "Lineal") {
+                indiceActual++;
+                lineaActiva = 1;
+                if (indiceActual < datos.length) {
+                    if (datos[indiceActual] === valorObjetivo) {
+                        encontrado = true;
+                        corriendo = false;
+                        lineaActiva = 2;
+                        return false;
+                    } else {
+                        descartados.add(indiceActual);
+                    }
+                } else {
+                    corriendo = false;
+                    return false;
+                }
+            } else if (algoritmo === "Binaria") {
+                if (izq <= der) {
+                    lineaActiva = 3;
+                    const m = Math.floor(izq + (der - izq) / 2);
+                    indiceActual = m;
+                    if (datos[m] === valorObjetivo) {
+                        encontrado = true;
+                        corriendo = false;
+                        lineaActiva = 4;
+                        return false;
+                    } else if (datos[m] < valorObjetivo) {
+                        for (let i = izq; i <= m; i++) descartados.add(i);
+                        izq = m + 1;
+                        lineaActiva = 5;
+                    } else {
+                        for (let i = m; i <= der; i++) descartados.add(i);
+                        der = m - 1;
+                        lineaActiva = 6;
+                    }
+                } else {
+                    corriendo = false;
+                    return false;
+                }
+            } else if (algoritmo === "Exponencial") {
+                if (!faseBinaria) {
+                    lineaActiva = 3;
+                    if (datos[0] === valorObjetivo) {
+                        indiceActual = 0;
+                        encontrado = true;
+                        corriendo = false;
+                        return false;
+                    }
+                    if (expI < datos.length && datos[expI] <= valorObjetivo) {
+                        indiceActual = expI;
+                        for (let i = 0; i < expI; i++) descartados.add(i);
+                        if (datos[expI] === valorObjetivo) {
+                            encontrado = true;
+                            corriendo = false;
+                            return false;
+                        }
+                        expI *= 2;
+                    } else {
+                        izq = Math.floor(expI / 2);
+                        der = Math.min(expI, datos.length - 1);
+                        faseBinaria = true;
+                    }
+                } else {
+                    if (izq <= der) {
+                        const m = Math.floor(izq + (der - izq) / 2);
+                        indiceActual = m;
+                        if (datos[m] === valorObjetivo) {
+                            encontrado = true;
+                            corriendo = false;
+                            return false;
+                        } else if (datos[m] < valorObjetivo) {
+                            for (let i = izq; i <= m; i++) descartados.add(i);
+                            izq = m + 1;
+                        } else {
+                            for (let i = m; i <= der; i++) descartados.add(i);
+                            der = m - 1;
+                        }
+                    } else {
+                        corriendo = false;
+                        return false;
+                    }
+                }
+            } else if (algoritmo === "Interpolacion") {
+                if (izq <= der && valorObjetivo >= datos[izq] && valorObjetivo <= datos[der]) {
+                    lineaActiva = 3;
+                    const p = Math.floor(izq + (der - izq) * (valorObjetivo - datos[izq]) / (datos[der] - datos[izq]));
+                    indiceActual = p;
+                    if (datos[p] === valorObjetivo) {
+                        encontrado = true;
+                        corriendo = false;
+                        lineaActiva = 4;
+                        return false;
+                    } else if (datos[p] < valorObjetivo) {
+                        for (let i = izq; i <= p; i++) descartados.add(i);
+                        izq = p + 1;
+                    } else {
+                        for (let i = p; i <= der; i++) descartados.add(i);
+                        der = p - 1;
+                    }
+                } else {
+                    corriendo = false;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function dibujar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const anchoBarra = canvas.width / datos.length;
+            const altoMax = canvas.height - 50;
+
+            datos.forEach((valor, i) => {
+                let color = COLOR_BARRA;
+                if (descartados.has(i)) color = COLOR_DESCARTADO;
+                if (i === indiceActual) color = encontrado ? COLOR_EXITO : COLOR_ACENTO;
+                if (valor === valorObjetivo) color = COLOR_OBJETIVO;
+
+                ctx.fillStyle = color;
+                const alto = (valor / 400) * altoMax;
+                ctx.fillRect(i * anchoBarra, canvas.height - alto - 10, anchoBarra - 2, alto);
+
+                ctx.fillStyle = COLOR_TEXTO;
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(valor.toString(), i * anchoBarra + anchoBarra / 2, canvas.height - 5);
+            });
+        }
+
+        function actualizarStats() {
+            statsEl.textContent = `Comparaciones: ${comparaciones} | Tamaño: ${tamLista} | Objetivo: ${valorObjetivo}`;
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 400;
+            dibujar();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Inicializar
+        setAlgoritmo('Binaria');
+        generarDatos();
+        resizeCanvas();
+    </script>
+</body>
+</html>
