@@ -1,0 +1,22 @@
+
+ 1 Pseudocódigo de Timsort
+
+función timsort(arr):
+    minRun = calcularMinRun(len(arr))
+    
+    // Fase 1: Crear runs iniciales
+    para cada bloque de minRun elementos:
+        invertirSiDescendente(bloque)
+        insertionSort(bloque)
+    
+    // Fase 2: Fusionar runs
+    tamaño = minRun
+    mientras tamaño < len(arr):
+        para cada par de runs consecutivos:
+            si runs están ordenados de forma especial:
+                activarGallopingMode()
+            fusionarRuns(run1, run2)
+        tamaño = 2
+    
+    retornar arr ordenado
+```
