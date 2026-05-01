@@ -54,5 +54,7 @@ Polinomio de base 31 sobre los caracteres de la clave — estándar en implement
 ---
 ## 👤 Enero.dev
 
-**[Tu nombre]**  
+**[Flores Flores Emerson Aldair]**
+[Ramos Vilca Francy Jimena]
+[Checma Montalvo Jesus Vidal]
 Quinto Semestre — Algoritmos y Estructuras de Datos
