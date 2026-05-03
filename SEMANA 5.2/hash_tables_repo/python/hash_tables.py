@@ -30,6 +30,7 @@ Dependencias:
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+from typing import List, Tuple, Any, Optional
 
 
 # =============================================================================
@@ -60,8 +61,8 @@ class HashTableChaining:
                         mejorar la distribución de las claves.
         """
         self.size = size
-        self.table = [[] for _ in range(size)]  # Lista de listas vacías
-        self.collisions = 0                      # Contador de colisiones
+        self.table: List[List[Tuple[Any, Any]]] = [[] for _ in range(size)]
+        self.collisions = 0
 
     def hash_function(self, key) -> int:
         """
@@ -91,7 +92,7 @@ class HashTableChaining:
         """
         index = self.hash_function(key)
 
-        # Si la lista en esa posición ya tiene elementos → hay colisión
+        # Si la lista en esa posición ya tiene elementos -> hay colisión
         if len(self.table[index]) > 0:
             self.collisions += 1
 
@@ -187,7 +188,7 @@ class HashTableLinearProbing:
                         al número de elementos que se insertarán.
         """
         self.size = size
-        self.table = [None] * size  # Arreglo único de tamaño fijo
+        self.table: List[Optional[Tuple[Any, Any]]] = [None] * size
         self.collisions = 0
 
     def hash_function(self, key) -> int:
@@ -311,7 +312,7 @@ def plot_results(results: pd.DataFrame) -> None:
     plt.tight_layout()
     plt.savefig("resultados_hash.png", dpi=150, bbox_inches="tight")
     plt.show()
-    print("  → Gráfico guardado como 'resultados_hash.png'")
+    print("  -> Gráfico guardado como 'resultados_hash.png'")
 
 
 # =============================================================================
@@ -342,14 +343,14 @@ def main():
     csv_path = os.path.join(data_dir, csv_files[0])
     
     try:
-        print(f"  → Leyendo: {csv_files[0]}")
+        print(f"  -> Leyendo: {csv_files[0]}")
         df = pd.read_csv(csv_path, encoding='utf-8')
     except Exception as e:
         print(f"\n  ERROR: No se pudo leer el archivo: {e}\n")
         return
 
     df = df.dropna()
-    print(f"  → Filas cargadas (sin nulos): {len(df):,}")
+    print(f"  -> Filas cargadas (sin nulos): {len(df):,}")
 
     # ------------------------------------------------------------------
     # 2. Extraer claves (primeros 10,000 user_id)
@@ -357,8 +358,8 @@ def main():
     keys = df["user_id"].astype(str).head(10_000).tolist()
     TABLE_SIZE = 20_011  # Número primo para mejor distribución
 
-    print(f"  → Claves extraídas: {len(keys):,}")
-    print(f"  → Tamaño de tabla:  {TABLE_SIZE:,}")
+    print(f"  -> Claves extraídas: {len(keys):,}")
+    print(f"  -> Tamaño de tabla:  {TABLE_SIZE:,}")
 
     # ------------------------------------------------------------------
     # 3. Prueba: Encadenamiento Separado
@@ -376,10 +377,10 @@ def main():
         hash_chain.search(key)
     search_time_chain = time.time() - start
 
-    print(f"  → Inserción: {insert_time_chain:.6f} s")
-    print(f"  → Búsqueda (1,000 claves): {search_time_chain:.6f} s")
-    print(f"  → Colisiones: {hash_chain.collisions:,}")
-    print(f"  → Factor de carga: {hash_chain.load_factor(len(keys)):.4f}")
+    print(f"  -> Inserción: {insert_time_chain:.6f} s")
+    print(f"  -> Búsqueda (1,000 claves): {search_time_chain:.6f} s")
+    print(f"  -> Colisiones: {hash_chain.collisions:,}")
+    print(f"  -> Factor de carga: {hash_chain.load_factor(len(keys)):.4f}")
 
     # ------------------------------------------------------------------
     # 4. Prueba: Sondeo Lineal
@@ -397,10 +398,10 @@ def main():
         hash_linear.search(key)
     search_time_linear = time.time() - start
 
-    print(f"  → Inserción: {insert_time_linear:.6f} s")
-    print(f"  → Búsqueda (1,000 claves): {search_time_linear:.6f} s")
-    print(f"  → Colisiones: {hash_linear.collisions:,}")
-    print(f"  → Factor de carga: {hash_linear.load_factor(len(keys)):.4f}")
+    print(f"  -> Inserción: {insert_time_linear:.6f} s")
+    print(f"  -> Búsqueda (1,000 claves): {search_time_linear:.6f} s")
+    print(f"  -> Colisiones: {hash_linear.collisions:,}")
+    print(f"  -> Factor de carga: {hash_linear.load_factor(len(keys)):.4f}")
 
     # ------------------------------------------------------------------
     # 5. Prueba: Diccionario nativo de Python (referencia)
@@ -418,9 +419,9 @@ def main():
         native_dict.get(key)
     search_time_dict = time.time() - start
 
-    print(f"  → Inserción: {insert_time_dict:.6f} s")
-    print(f"  → Búsqueda (1,000 claves): {search_time_dict:.6f} s")
-    print(f"  → Colisiones: N/A (estructura nativa)")
+    print(f"  -> Inserción: {insert_time_dict:.6f} s")
+    print(f"  -> Búsqueda (1,000 claves): {search_time_dict:.6f} s")
+    print(f"  -> Colisiones: N/A (estructura nativa)")
 
     # ------------------------------------------------------------------
     # 6. Tabla comparativa de resultados
