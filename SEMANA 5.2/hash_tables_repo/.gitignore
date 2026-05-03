@@ -1,0 +1,45 @@
+# =============================================================================
+# .gitignore — Tablas Hash | Estructuras de Datos
+# =============================================================================
+
+# ── Dataset (no subir por tamaño y licencia de Kaggle) ──────────────────────
+*.csv
+*.parquet
+*.json
+data/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+pip-log.txt
+
+# ── C++ ──────────────────────────────────────────────────────────────────────
+cpp/hash_tables
+cpp/*.o
+cpp/*.out
+cpp/*.exe
+
+# ── Outputs / resultados ─────────────────────────────────────────────────────
+*.png
+*.pdf
+resultados_*.csv
+
+# ── IDEs y editores ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
