@@ -178,7 +178,6 @@ void benchmark(const vector<Registro>& datos, vector<size_t> tamanios) {
 }
 
 // FUNCIÓN PRINCIPAL
-
 int main() {
     cout << "=== BENCHMARK TABLAS HASH (C++) ===" << endl;
 
