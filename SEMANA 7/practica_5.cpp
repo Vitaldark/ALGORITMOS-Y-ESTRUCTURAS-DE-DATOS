@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -127,7 +126,7 @@ int main() {
     }
     return 0;
 }
-=======
+
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -256,4 +255,3 @@ int main() {
     }
     return 0;
 }
->>>>>>> 1fffc74ac1891372de17add1d20a94fdf8a7fb3e

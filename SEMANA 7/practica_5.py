@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import time
 import random
 
@@ -100,7 +99,7 @@ if __name__ == "__main__":
         medir("Insertion Sort", insertion_sort, entrada)
         medir("Merge Sort    ", merge_sort,     entrada)
         medir("Quick Sort    ", quick_sort,     entrada)
-=======
+
 import time
 import random
 
@@ -202,4 +201,3 @@ if __name__ == "__main__":
         medir("Insertion Sort", insertion_sort, entrada)
         medir("Merge Sort    ", merge_sort,     entrada)
         medir("Quick Sort    ", quick_sort,     entrada)
->>>>>>> 1fffc74ac1891372de17add1d20a94fdf8a7fb3e
