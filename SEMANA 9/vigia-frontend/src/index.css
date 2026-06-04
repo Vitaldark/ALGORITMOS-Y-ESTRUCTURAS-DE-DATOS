@@ -1,0 +1,103 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #050a0e;
+  --bg-secondary: #0a1520;
+  --bg-card: #0d1f2d;
+  --bg-panel: #071219;
+  --border: #1a3a4a;
+  --border-bright: #1e5a7a;
+
+  --text-primary: #e0f4ff;
+  --text-secondary: #7ab8d4;
+  --text-muted: #3d7a9a;
+
+  --accent-cyan: #00d4ff;
+  --accent-green: #00e896;
+  --accent-orange: #ff8c00;
+  --accent-red: #ff2d55;
+  --accent-yellow: #f0c040;
+
+  --critica: #ff2d55;
+  --alta: #ff8c00;
+  --media: #f0c040;
+  --baja: #00e896;
+
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --sidebar-width: 320px;
+  --header-height: 56px;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+/* Leaflet overrides */
+.leaflet-container {
+  background: #050a0e !important;
+}
+.leaflet-tile {
+  filter: brightness(0.4) saturate(0.5) hue-rotate(170deg) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--bg-card) !important;
+  color: var(--accent-cyan) !important;
+  border: 1px solid var(--border) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--border-bright) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(5,10,14,0.8) !important;
+  color: var(--text-muted) !important;
+  font-size: 9px !important;
+}
+
+/* Custom marker pulse */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}

@@ -1,0 +1,12 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; color: #c9d1d9; }
+.vigia-tooltip {
+  background: #0d1117!important;
+  border: 0.5px solid rgba(29,158,117,0.5)!important;
+  color: #c9d1d9!important;
+  font-family: monospace!important;
+  font-size: 11px!important;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #161b22; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
